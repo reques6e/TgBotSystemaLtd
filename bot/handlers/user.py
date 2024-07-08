@@ -16,6 +16,7 @@ from bot.keyboards import keyboard as kb
 from bot.dictionaries.dictionary import Texts
 from bot.states.state import SomeState, Registration, SubscribeBuy, ChangePasswordState, Kino
 from bot.services.db import DataBase
+from config import Config
 
 db = DataBase()
 
@@ -781,8 +782,8 @@ async def process_amount(message: types.Message, state: FSMContext):
     amount = int(message.text)
     user_id = message.from_user.id
 
-    if amount >= 25000:
-        await message.reply(text=Texts.process_amount_limit_text)
+    if amount >= Config.amount_limit:
+        await message.reply(text=Texts.process_amount_limit_text.format(amount_limit=Config.amount_limit))
     else:
         user = await db.get_user_info(
             user_id=user_id
