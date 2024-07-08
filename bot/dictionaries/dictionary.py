@@ -124,7 +124,7 @@ class Texts:
 
     subscribe_buy_text = """Введите сумму для пополнения баланса:"""
 
-    process_amount_limit_text = """Введите сумму меньше 25000"""
+    process_amount_limit_text = """Введите сумму меньше {amount_limit}"""
 
     process_amount_text = """Ваша ссылка для пополнения лицевого счёта:
 \n\n{pay_link}\n\n
