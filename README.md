@@ -89,8 +89,21 @@ systemctl start tg_bot_systema.service
 ### Настройка файлов конфигурации
 > Файл конфигурации бота: `config.py`
 ```python
-bot_token = '' # Сюда требуется вставить токен бота который можно получить у https://t.me/BotFather, подробная инструкция: https://developers.sber.ru/help/salutebot/telegram-integration
-cdn_domain = '' # Сюда добавляем ссылку на cdn, если хотите запустить бота без CDN, то оставьте это поле пустым.
+
+class Config:
+    bot_token = ''
+    cdn_domain = ''
+
+    amount_limit = 25000
+
+    class DataBase:
+        db_config = {
+            'host': '127.0.0.1',
+            'port': 3306,
+            'user': '',
+            'password': '',
+            'db': ''
+        }
 ```
 
 ### Структура базы данных
