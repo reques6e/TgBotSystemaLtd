@@ -12,7 +12,7 @@ from bot.bot import dp, bot
 from bot.utils import ( pay_list, fetch_profile, auth_profile, generate_pay_link, promised_payment, get_camera, 
                        get_locations, get_stream_info, change_password, change_password_confim, lock_lk_rs, 
                        upload_cdn, get_kino_search_result, get_kino_by_id)
-from bot.keyboards import keyboard as kb
+from bot.keyboards import user as kb
 from bot.dictionaries.dictionary import Texts
 from bot.states.state import SomeState, Registration, SubscribeBuy, ChangePasswordState, Kino
 from bot.services.db import DataBase
@@ -460,7 +460,7 @@ async def add_to_favorites(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id, text=Texts.add_to_favorites_text)
 
 
-@dp.callback_query_handler(lambda c: c.data == 'get_favorites')
+@dp.callback_query_handler(lambda c: c.data == 'favorites')
 async def get_favorites(callback_query: types.CallbackQuery):
     user_id = callback_query.from_user.id
 

@@ -10,15 +10,15 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.dispatcher import FSMContext
 
 from bot.bot import dp, bot
-from bot.keyboards.keyboard_admin import generate_admin_keyboard
-from bot.keyboards import keyboard as kb
+from bot.keyboards.admin import generate_admin_keyboard
+from bot.keyboards import user as kb
 from bot.dictionaries.dictionary import Texts
 from bot.states.state import SomeState, MailingState
 from bot.services.db import DataBase
 
 db = DataBase()
     
-@dp.callback_query_handler(lambda c: c.data == 'admin_panel')
+@dp.callback_query_handler(lambda c: c.data == 'admin')
 async def admin_panel(callback_query: types.CallbackQuery):
     user_id = callback_query.from_user.id
     user = callback_query.from_user
