@@ -1,2 +1,2 @@
-from .keyboard import generate_main_menu
-from .keyboard_admin import generate_admin_keyboard
+from .user import generate_main_menu
+from .admin import generate_admin_keyboard
