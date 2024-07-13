@@ -239,7 +239,7 @@ async def get_kino_name(message: types.Message, state: FSMContext):
             except:
                 await bot.send_message(
                     message.chat.id,
-                    text='Выберите фильм',
+                    text=Texts.send_film_name,
                     reply_markup=keyboard
                 )
         
