@@ -57,7 +57,7 @@ pip3 install -r assets/requirements.txt
 
 cat > /etc/systemd/system/${service_name}.service <<EOF
 [Unit]
-Description=TgBotSystema By Reques6e
+Description=TgBotSystema By Reques6e https://github.com/reques6e/TgBotSystemaLtd/
 After=network.target
 
 [Service]
