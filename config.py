@@ -7,7 +7,7 @@ class Config:
 
     class DataBase:
         db_config = {
-            'host': '127.0.0.1',
+            'host': '',
             'port': 3306,
             'user': '',
             'password': '',
