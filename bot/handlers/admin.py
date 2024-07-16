@@ -53,6 +53,7 @@ async def grant_access_callback(callback_query: types.CallbackQuery):
 async def send_personal_message(callback_query: types.CallbackQuery):
     keyboard = InlineKeyboardMarkup()
     cancel_button = InlineKeyboardButton("Отменить действие", callback_data='cancel')
+
     keyboard.row(cancel_button)
 
     await bot.send_message(callback_query.from_user.id,
@@ -67,7 +68,7 @@ async def process_personal_message_id(message: types.Message, state: FSMContext)
         user_id=message.from_user.id
     )
 
-    if user[4] == 1:
+    if user[4]:
         try:
             await state.update_data(user_id=int(message.text))
             await bot.send_message(message.chat.id, text=Texts.process_personal_text)
@@ -83,7 +84,7 @@ async def process_personal_message_text(message: types.Message, state: FSMContex
         user_id=message.from_user.id
     )
 
-    if user[4] == 1:
+    if user[4]:
         try:
             data = await state.get_data()
             user_id = data.get('user_id')
@@ -91,18 +92,21 @@ async def process_personal_message_text(message: types.Message, state: FSMContex
 
             delete_button = types.InlineKeyboardButton("🗑Удалить", callback_data='button_delete_message')
             delete_message = types.InlineKeyboardMarkup().add(delete_button)
+
             await bot.send_message(
                 user_id,
                 personal_message,
                 parse_mode='HTML',
                 reply_markup=delete_message
             )
+
             await bot.send_message(
                 message.chat.id,
                 text=Texts.send_personal_true_text.format(user_id=user_id),
                 parse_mode='HTML',
                 reply_markup=generate_admin_keyboard()
             )
+
         except Exception as e:
             await message.reply(text=Texts.send_personal_false_text)
         finally:
@@ -122,21 +126,21 @@ async def process_user_id(message: types.Message, state: FSMContext):
     try:
         user_id = int(message.text)
 
-        user = await db.get_user_info(
+        target_user = await db.get_user_info(
             user_id=user_id
         )
 
-        if user:
+        if target_user:
             if user_id == message.from_user.id:
                 await bot.send_message(user_id, text=Texts.grant_access_me_text)
-            elif user[4]:
+            elif target_user[4]:
                 await bot.send_message(user_id, text=Texts.grant_access_is_admin_text)
             else:
                 user = await db.get_user_info(
                     user_id=message.from_user.id
                 )
                 
-                if user[4] == 1:
+                if user[4]:
                     await db.update_admin(
                         user_id=user_id,
                         admin=1
@@ -155,7 +159,7 @@ async def process_user_id(message: types.Message, state: FSMContext):
         await message.reply(text=Texts.user_id_not_found)
     finally:
         await state.finish()
-        
+          
 @dp.message_handler(state=SomeState.waiting_to_revoke)
 async def process_revoke_access(message: types.Message, state: FSMContext):
     try:
@@ -169,11 +173,12 @@ async def process_revoke_access(message: types.Message, state: FSMContext):
             if not user[4]:
                 await bot.send_message(user_id, text=Texts.revoke_access_false_text)
             else:
-                if user[4] == 1:
+                if user[4]:
                     await db.update_admin(
                         user_id=user_id,
                         admin=0
                     )
+                    
                     await bot.send_message(
                         message.chat.id,
                         text=Texts.revoke_access_true_text.format(user_id=user_id),
@@ -209,7 +214,7 @@ async def process_content_input(message: types.Message, state: FSMContext):
         user_id=user_id
     )
 
-    if user and user[4] == 1: 
+    if user and user[4]: 
         users = await db.get_all_user_id()
 
         await message.answer(text=Texts.process_content_input_text)
