@@ -363,11 +363,7 @@ async def camera_selected(callback_query: types.CallbackQuery):
     user_id = callback_query.from_user.id
 
     async def is_favorite(user_id, channel_name):
-        row = await db.get_cams(
-            user_id=user_id
-        )
-
-        if row:
+        if row := await db.get_cams(user_id=user_id):
             favorites = json.loads(row[0])
             return channel_name in favorites
         else:
