@@ -64,50 +64,59 @@ async def send_personal_message(callback_query: types.CallbackQuery):
 
 @dp.message_handler(state=SomeState.waiting_for_personal_message_id)
 async def process_personal_message_id(message: types.Message, state: FSMContext):
-    user = await db.get_user_info(
-        user_id=message.from_user.id
-    )
-
-    if user[4]:
+    if (await db.get_user_info(user_id=message.from_user.id))[4]:
         try:
-            await state.update_data(user_id=int(message.text))
-            await bot.send_message(message.chat.id, text=Texts.process_personal_text)
-            await SomeState.waiting_for_personal_message_text.set()
+            target_user_id = int(message.text)
         except ValueError:
-            await message.reply(text=Texts.user_id_not_found)
+            await message.reply(text=Texts.user_id_error)
+
+        if user := await db.get_user_info(user_id=target_user_id):
+            await bot.send_message(
+                chat_id=message.chat.id, 
+                text=Texts.process_personal_text.format(user_id=target_user_id),
+                parse_mode='HTML'
+            )
+
+            await state.update_data(user_id=target_user_id)
+            await SomeState.waiting_for_personal_message_text.set()
+        else:
+            await bot.send_message(
+                chat_id=message.chat.id, 
+                text=Texts.user_id_not_found.format(user_id=target_user_id), 
+                parse_mode='HTML'
+            )
+
     else:
         await bot.send_message(message.chat.id, text=Texts.process_content_input_false_text)
 
 @dp.message_handler(state=SomeState.waiting_for_personal_message_text)
 async def process_personal_message_text(message: types.Message, state: FSMContext):
-    user = await db.get_user_info(
-        user_id=message.from_user.id
-    )
+    if (await db.get_user_info(user_id=message.from_user.id))[4]:
+        data = await state.get_data()
+        user_id = data.get('user_id')
+        personal_message = message.text
+        
+        # Замена специальных символов HTML
+        personal_message = personal_message.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
-    if user[4]:
+        delete_button = types.InlineKeyboardButton("🗑Удалить", callback_data='button_delete_message')
+        delete_message = types.InlineKeyboardMarkup().add(delete_button)
+
         try:
-            data = await state.get_data()
-            user_id = data.get('user_id')
-            personal_message = message.text
-
-            delete_button = types.InlineKeyboardButton("🗑Удалить", callback_data='button_delete_message')
-            delete_message = types.InlineKeyboardMarkup().add(delete_button)
-
             await bot.send_message(
                 user_id,
                 personal_message,
                 parse_mode='HTML',
                 reply_markup=delete_message
             )
-
+            
             await bot.send_message(
                 message.chat.id,
                 text=Texts.send_personal_true_text.format(user_id=user_id),
-                parse_mode='HTML',
-                reply_markup=generate_admin_keyboard()
+                parse_mode='HTML'
             )
-
         except Exception as e:
+            print(e)
             await message.reply(text=Texts.send_personal_false_text)
         finally:
             await state.finish()
@@ -156,7 +165,7 @@ async def process_user_id(message: types.Message, state: FSMContext):
         else:
             await message.reply(text=Texts.re_auth_user_not_in_database_text)
     except ValueError:
-        await message.reply(text=Texts.user_id_not_found)
+        await message.reply(text=Texts.user_id_error)
     finally:
         await state.finish()
           
@@ -165,31 +174,25 @@ async def process_revoke_access(message: types.Message, state: FSMContext):
     try:
         user_id = int(message.text)
 
-        user = await db.get_user_info(
-            user_id=message.from_user.id
-        )
+        user_info = await db.get_user_info(user_id=message.from_user.id)
+        if user_info:
+            if user_info[4]:
+                await db.update_admin(
+                    user_id=user_id,
+                    admin=0
+                )
 
-        if user:
-            if not user[4]:
-                await bot.send_message(user_id, text=Texts.revoke_access_false_text)
+                await bot.send_message(
+                    message.chat.id,
+                    text=Texts.revoke_access_true_text.format(user_id=user_id),
+                    parse_mode='HTML'
+                )
             else:
-                if user[4]:
-                    await db.update_admin(
-                        user_id=user_id,
-                        admin=0
-                    )
-                    
-                    await bot.send_message(
-                        message.chat.id,
-                        text=Texts.revoke_access_true_text.format(user_id=user_id),
-                        parse_mode='HTML'
-                    )
-                else:
-                    await bot.send_message(message.chat.id, text=Texts.process_content_input_false_text)
+                await bot.send_message(user_id, text=Texts.revoke_access_false_text)
         else:
             await message.reply(text=Texts.re_auth_user_not_in_database_text)
     except ValueError:
-        await message.reply(text=Texts.user_id_not_found)
+        await message.reply(text=Texts.user_id_error)
     finally:
         await state.finish()
         
